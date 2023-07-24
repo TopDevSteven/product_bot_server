@@ -4,6 +4,8 @@ from langchain.chat_models import ChatOpenAI
 from fastapi.middleware.cors import CORSMiddleware
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
+import openai
+openai.api_key = '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'
 import os
 
 load_dotenv()
@@ -56,8 +58,8 @@ Else
         }
         Here `Type1` and `Type2` are the unique from column `Type` like "Clamping Heads".
 
-    Else, the question is to ask type included in coulmn `Type` like "Clamping Heads", select column `Tool_name`, `Diameter`, `Vendor` and use the following format.
-        " `Tool_name` by `Vendor`, from `Minumum Diameter` to `Maximum Diameter` with step `Range` available. "
+    Else, the question is to ask type included in coulmn `Type` like "Clamping Heads", select column `Tool_name`, `Diameter`, `Vendor`, `SKU` and use the following format.
+        " `Tool_name` by `Vendor`, from `Minumum Diameter` to `Maximum Diameter` with step `Range` available. SKU is `SKU` "
         Here, `Tool_name` must be unique not the same.
         And `Maximum Diameter` should be maximum value of diameter in `Diameter`.
         And `Minimum Diameter` should be minimum value of diameter in `Diameter`.
@@ -65,8 +67,8 @@ Else
         For example, " Clamping Heads - Type 32L - Round - L(smooth) by DT GROUP, from '4' to '32' with step '1.0' available "
         Output one by one in a line.
     
-    Else, the question is to ask type included in coulmn `Tool_name`, select column `Diameter`, `Vendor` and use the following format.
-    " `Tool_name` by `Vendor`, from `Minumum Diameter` to `Maximum Diameter` with step `Range` available. "
+    Else, the question is to ask type included in coulmn `Tool_name`, select column `Diameter`, `Vendor`,`SKU` and use the following format.
+    " `Tool_name` by `Vendor`, from `Minumum Diameter` to `Maximum Diameter` with step `Range` available. SKU is `SKU` "
         Here, `Tool_name` must be unique not the same.
         And `Maximum Diameter` should be maximum value of diameter in `Diameter`.
         And `Minimum Diameter` should be minimum value of diameter in `Diameter`.
@@ -74,8 +76,8 @@ Else
         For example, " Clamping Heads - Type 32L - Round - L(smooth) by DT GROUP, from '4' to '32' with step '1.0' available "
         Output one by one in a line.
     
-    Else, the question is to ask type included in coulmn `Size` like "Type 32L", select column `Tool_name`, `Diameter`, `Vendor` and use the following format.
-    " `Tool_name` by `Vendor`, from `Minumum Diameter` to `Maximum Diameter` with step `Range` available. "
+    Else, the question is to ask type included in coulmn `Size` like "Type 32L", select column `Tool_name`, `Diameter`, `Vendor`,`SKU` and use the following format.
+    " `Tool_name` by `Vendor`, from `Minumum Diameter` to `Maximum Diameter` with step `Range` available. SKU is `SKU` "
         Here, `Tool_name` must be unique not the same.
         And `Maximum Diameter` should be maximum value of diameter in `Diameter`.
         And `Minimum Diameter` should be minimum value of diameter in `Diameter`.
@@ -88,10 +90,15 @@ Else
         Here, `Tool_name` must be unique not the same.
         For example, " Clamping Heads - Type 32L - Round - L(smooth) by DT GROUP available "
         Output one by one in a line.
-    
+Else, there is no answer to the question, must output the following sentence. "Ooops" 
 """
 
-
+    additional_query2 = """
+        If the question is to find something like including "I am looking for" or "find" or "do you have", should output the following sentence.
+            "Sorry, there is no such product. 
+             Please provide correct toolnames or
+             Check the tools with the following question `What tools do you have?`"
+    """
     # query = query + additional_query
     # if (query == "I am looking for clamping heads") or (query == "what tools do you have"):                                                                                                                                                                                                                                                                                                      
     #     return {"message": "What type of clamping heads are you looking for? Or for what type of machine? Tell me more so I can help you find the correct product!"}
@@ -99,6 +106,21 @@ Else
     # else:
     query.replace("ø", "diameter")
     query += additional_query
-    print(query)
+    # print(query)
     res = db_chain(query)
-    return {"message": res['result']}
+    if res['result'] == "Ooops":
+        messages = [ {"role": "system", "content": 
+                    "You are a intelligent assistant."} ]
+        while True:
+            message = body['query'] + additional_query2
+            if message:
+                messages.append(
+                    {"role": "user", "content": message},
+                )
+                chat = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo", messages=messages
+                )
+            reply = chat.choices[0].message.content
+            return {"message": reply}
+    else:
+        return {"message": res['result']}
