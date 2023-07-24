@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 import openai
-openai.api_key = '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'
+openai.api_key = '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'
 import os
 
 load_dotenv()
@@ -45,7 +45,7 @@ async def chat(reqeust: Request):
     #     return {"message": "sfdsfsfds"}
     query = body['query']
     additional_query = """
-If the question is like "hello" or "hi", output the following sentence. "Hi there! I am your Hectool assistant today, how can I help?"
+If the question is like "Hello" or "Hi", output the following sentence. "Hi there! I am your Hectool assistant today, how can I help?"
 
 Else
     If, the question is like "I am looking for tools" or "What tools do you have?", use the column `Type` and select unique not the same.
@@ -58,43 +58,46 @@ Else
         }
         Here `Type1` and `Type2` are the unique from column `Type` like "Clamping Heads".
 
-    Else, the question is to ask type included in coulmn `Type` like "Clamping Heads", select column `Tool_name`, `Diameter`, `Vendor`, `SKU` and use the following format.
-        " `Tool_name` by `Vendor`, from `Minumum Diameter` to `Maximum Diameter` with step `Range` available. SKU is `SKU` "
+    Else, the question is to ask type included in coulmn `Type` like "Clamping Heads", select column `Tool_name`, `Minumum Diameter`,`Maximum Diameter`, `Range`, `Vendor`, `SKU` and use the following format.
+        " `meTool_na` by `Vendor`, from `Minumum Diameter` to `Maximum Diameter` with step `Range` available. SKU is `SKU` "
         Here, `Tool_name` must be unique not the same.
         And `Maximum Diameter` should be maximum value of diameter in `Diameter`.
         And `Minimum Diameter` should be minimum value of diameter in `Diameter`.
-        And `Range` should be difference between `Maximum Diameter` and `Minimum Diameter` divided by minus one from counts of same `Tool_name`.
+        And `Range` should be difference between `Maximum Diameter` and `Minimum Diameter` divided by minus one from number of `Tool_name`.
         For example, " Clamping Heads - Type 32L - Round - L(smooth) by DT GROUP, from '4' to '32' with step '1.0' available "
+
         Output one by one in a line.
     
-    Else, the question is to ask type included in coulmn `Tool_name`, select column `Diameter`, `Vendor`,`SKU` and use the following format.
+    Else, the question is to ask type included in coulmn `Tool_name`, select column `Minumum Diameter`,`Maximum Diameter`, `Range`, `Vendor`,`SKU` and use the following format.
     " `Tool_name` by `Vendor`, from `Minumum Diameter` to `Maximum Diameter` with step `Range` available. SKU is `SKU` "
         Here, `Tool_name` must be unique not the same.
         And `Maximum Diameter` should be maximum value of diameter in `Diameter`.
         And `Minimum Diameter` should be minimum value of diameter in `Diameter`.
-        And `Range` should be difference between `Maximum Diameter` and `Minimum Diameter` divided by minus one from counts of same `Tool_name`.
+        And `Range` should be difference between `Maximum Diameter` and `Minimum Diameter` divided by minus one from number of `Tool_name`.
         For example, " Clamping Heads - Type 32L - Round - L(smooth) by DT GROUP, from '4' to '32' with step '1.0' available "
+        `Maximum Diameter`, `Minimum Diameter`, `Range` must be included.
         Output one by one in a line.
     
-    Else, the question is to ask type included in coulmn `Size` like "Type 32L", select column `Tool_name`, `Diameter`, `Vendor`,`SKU` and use the following format.
+    Else, the question is to ask type included in coulmn `Size` like "Type 32L", select column `Tool_name`, `Minumum Diameter`,`Maximum Diameter`, `Range`, `Vendor`,`SKU` and use the following format.
     " `Tool_name` by `Vendor`, from `Minumum Diameter` to `Maximum Diameter` with step `Range` available. SKU is `SKU` "
         Here, `Tool_name` must be unique not the same.
         And `Maximum Diameter` should be maximum value of diameter in `Diameter`.
         And `Minimum Diameter` should be minimum value of diameter in `Diameter`.
-        And `Range` should be difference between `Maximum Diameter` and `Minimum Diameter` divided by minus one from counts of same `Tool_name`.
+        And `Range` should be difference between `Maximum Diameter` and `Minimum Diameter` divided by minus one from number of `Tool_name`.
         For example, " Clamping Heads - Type 32L - Round - L(smooth) by DT GROUP, from '4' to '32' with step '1.0' available "
+        `Maximum Diameter`, `Minimum Diameter`, `Range` must be included.
         Output one by one in a line.
 
-    Else, the question is to ask type included in coulmn `Diameter` like "diameter 42", select column `Tool_name`, `Vendor` and use the following format.
+    Else, the question is to ask type included in coulmn `Diameter` like "diameter 42", select column `Tool_name`, `Vendor`, `SKU` and use the following format.
     " `Tool_name` by `Vendor` available. "
         Here, `Tool_name` must be unique not the same.
-        For example, " Clamping Heads - Type 32L - Round - L(smooth) by DT GROUP available "
+        For example, " Clamping Heads - Type 32L - Round - L(smooth) by DT GROUP available. sku is `SKU`."
         Output one by one in a line.
 Else, there is no answer to the question, must output the following sentence. "Ooops" 
 """
 
     additional_query2 = """
-        If the question is to find something like including "I am looking for" or "find" or "do you have", should output the following sentence.
+        If the question is to find something like including "I am looking for" or "find" or "do you have" or "need", should output the following sentence.
             "Sorry, there is no such product. 
              Please provide correct toolnames or
              Check the tools with the following question `What tools do you have?`"
