@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Query
 from langchain import OpenAI, SQLDatabase , SQLDatabaseChain
 from langchain.chat_models import ChatOpenAI
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,6 +34,16 @@ app.add_middleware(
 )
 
 message = []
+
+@app.get('/oauth/callback')
+async def oauth_callback(code: str = Query(...)):
+    # Now you have the authorization code, you can proceed with Step 3 in the previous example to get the access token
+
+    # For example, you can print the code parameter
+    print("Received authorization code:", code)
+
+    # For the response, you can return a success message or redirect the user to a success page
+    return {"message": "Authorization code received successfully!"}
 
 
 @app.post("/chat/")
