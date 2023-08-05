@@ -35,7 +35,7 @@ app.add_middleware(
 
 message = []
 
-@app.get('/oauth/callback')
+@app.get('/oauth/callback/')
 async def oauth_callback(code: str = Query(...)):
     # Now you have the authorization code, you can proceed with Step 3 in the previous example to get the access token
 
