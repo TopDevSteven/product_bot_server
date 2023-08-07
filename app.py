@@ -36,11 +36,15 @@ app.add_middleware(
 message = []
 
 @app.get('/oauth/callback')
-async def oauth_callback(code: str = Query(...)):
+async def oauth_callback(code: str = Query(...), shop: str = Query(...)):
+# async def oauth_callback(code: str = Query(...)):
     # Now you have the authorization code, you can proceed with Step 3 in the previous example to get the access token
 
     # For example, you can print the code parameter
+    print("~~~~~~~~~~~~~")
     print("Received authorization code:", code)
+    print("received shop", shop)
+    print("~~~~~~~~~~~~~~~~")
 
     # For the response, you can return a success message or redirect the user to a success page
     return {"message": "Authorization code received successfully!"}
